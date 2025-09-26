@@ -13,26 +13,7 @@
     <meta property="og:url" content="https://shaiitech.com">
   </head>
   <body>
-    <div id="root">
-      <div style="padding: 20px; font-family: Arial, sans-serif;">
-        <h1>SHAIITECH Loading...</h1>
-        <p>If you see this, the HTML is loading but React is not mounting.</p>
-        <script>
-          console.log('HTML loaded successfully');
-          console.log('React version check...');
-        </script>
-      </div>
-    </div>
+    <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
-    <script>
-      // Fallback debugging
-      setTimeout(() => {
-        const root = document.getElementById('root');
-        if (root && root.innerHTML.includes('Loading...')) {
-          console.error('React failed to mount after 3 seconds');
-          root.innerHTML = '<div style="padding: 20px;"><h1>SHAIITECH</h1><p>React app failed to load. Debug mode enabled.</p></div>';
-        }
-      }, 3000);
-    </script>
   </body>
 </html>

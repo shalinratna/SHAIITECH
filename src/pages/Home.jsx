@@ -136,8 +136,6 @@ export function Home() {
               We are a premier technology company that transforms visionary ideas into
               cutting-edge digital solutions. From AI-powered applications to enterprise-scale
               cloud infrastructure, we make the impossible possible.
-
-              🚀 AUTO-DEPLOYMENT TEST: This change was made via Claude Code and auto-deployed!
             </motion.p>
 
             <motion.div

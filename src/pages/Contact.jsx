@@ -90,14 +90,55 @@ export function Contact() {
   const onSubmit = async (data) => {
     setIsSubmitting(true);
 
-    // Simulate form submission
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      console.log('Form submitted:', data);
+      // Anti-spam: Honeypot check (hidden field should be empty)
+      if (data.website) {
+        throw new Error('Spam detected. Please try again.');
+      }
+
+      // Anti-spam: Math captcha check
+      const mathAnswer = parseInt(data.mathCaptcha);
+      if (mathAnswer !== 9) { // 4+5=9
+        throw new Error('Please solve the math problem correctly.');
+      }
+
+      // Anti-spam: Time delay check (form should take at least 5 seconds to fill)
+      const formStartTime = localStorage.getItem('formStartTime');
+      if (formStartTime && (Date.now() - parseInt(formStartTime)) < 5000) {
+        throw new Error('Please take more time to fill out the form.');
+      }
+
+      // Send email via Formspree (replace with your Formspree endpoint)
+      const response = await fetch('https://formspree.io/f/mdknoqap', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: data.name,
+          email: data.email,
+          phone: data.phone,
+          company: data.company,
+          service: data.service,
+          budget: data.budget,
+          timeline: data.timeline,
+          message: data.message,
+          _subject: `New SHAIITECH Contact Form - ${data.service}`,
+          _replyto: data.email,
+          _gotcha: data.website, // Honeypot field
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Network error. Please try again.');
+      }
+
       setIsSubmitted(true);
       reset();
+      localStorage.removeItem('formStartTime');
     } catch (error) {
       console.error('Form submission error:', error);
+      alert(error.message || 'Something went wrong. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -190,6 +231,27 @@ export function Contact() {
                     Start Your Project
                   </h2>
                   <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                    {/* Honeypot - Hidden from users, catches bots */}
+                    <input
+                      type="text"
+                      name="website"
+                      {...register('website')}
+                      style={{ display: 'none' }}
+                      tabIndex="-1"
+                      autoComplete="off"
+                    />
+
+                    {/* Track form start time for spam prevention */}
+                    <input
+                      type="hidden"
+                      {...register('formStartTime')}
+                      defaultValue={(() => {
+                        const timestamp = Date.now().toString();
+                        localStorage.setItem('formStartTime', timestamp);
+                        return timestamp;
+                      })()}
+                    />
+
                     {/* Personal Information */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
@@ -401,6 +463,33 @@ export function Contact() {
                           </div>
                         )}
                       </div>
+                    </div>
+
+                    {/* Anti-spam Math Captcha */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Security Check: What is 4 + 5? *
+                      </label>
+                      <input
+                        type="number"
+                        {...register('mathCaptcha', {
+                          required: 'Please solve the math problem to verify you are human',
+                          valueAsNumber: true
+                        })}
+                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors ${
+                          errors.mathCaptcha ? 'border-red-500' : 'border-gray-300'
+                        }`}
+                        placeholder="Enter the answer (helps prevent spam)"
+                      />
+                      {errors.mathCaptcha && (
+                        <div className="flex items-center mt-2 text-red-600">
+                          <ExclamationTriangleIcon className="w-4 h-4 mr-1" />
+                          <span className="text-sm">{errors.mathCaptcha.message}</span>
+                        </div>
+                      )}
+                      <p className="text-xs text-gray-500 mt-1">
+                        This helps us prevent automated spam submissions
+                      </p>
                     </div>
 
                     <Button
